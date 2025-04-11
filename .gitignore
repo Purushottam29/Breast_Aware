@@ -1,0 +1,39 @@
+# Node modules (from frontend)
+node_modules/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
+.venv/
+env/
+venv/
+
+# Data and models (can be regenerated or are large)
+uploads/
+
+# Compiled/temporary files
+*.npy
+*.pkl
+*.csv
+
+# Build and logs
+dist/
+build/
+*.log
+
+# VSCode settings (if using)
+.vscode/
+
+# Frontend build cache
+public/
+*.tsbuildinfo
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
