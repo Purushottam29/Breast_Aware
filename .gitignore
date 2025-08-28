@@ -6,7 +6,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
+# Python virtual environment
+bcp/
 # Environment
 .env
 .venv/
