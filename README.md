@@ -48,12 +48,14 @@ venv\Scripts\activate     # On Windows
 
 ```bash
 pip install -r requirements.txt
+npm install
 ```
 
 4 **Run the app**
 
 ```bash
-streamlit run app.py
+python app.py //to run the backend
+npm run dev //to start the frontend
 ```
 
 ---
