@@ -6,11 +6,20 @@ from PIL import Image
 import joblib
 from skimage.feature import hog
 import tensorflow as tf
+from flask import make_response
 
 # Initialize Flask
 app = Flask(__name__)
-CORS(app)  # Enable CORS
-
+CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])  # Enable CORS
+#Handle preflight OPTIONS requests
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 # Define folders
 UPLOAD_FOLDER = 'uploads'
 MODELS_FOLDER = './models'
