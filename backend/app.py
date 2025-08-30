@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import os
 import numpy as np
@@ -6,12 +6,12 @@ from PIL import Image
 import joblib
 from skimage.feature import hog
 import tensorflow as tf
-from flask import make_response
 
 # Initialize Flask
 app = Flask(__name__)
-CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])  # Enable CORS
-#Handle preflight OPTIONS requests
+CORS(app, origins=["*"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
+
+# Handle preflight OPTIONS requests
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
@@ -20,29 +20,39 @@ def handle_preflight():
         response.headers.add('Access-Control-Allow-Headers', "*")
         response.headers.add('Access-Control-Allow-Methods', "*")
         return response
+
 # Define folders
 UPLOAD_FOLDER = 'uploads'
 MODELS_FOLDER = './models'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(MODELS_FOLDER, exist_ok=True)
 
-# Load models with error handling
-try:
-    neural_network_model = tf.keras.models.load_model(os.path.join(MODELS_FOLDER, 'densenet121_model.h5'))
-    print("Neural network model loaded successfully")
-except Exception as e:
-    print(f"Error loading neural network model: {e}")
-    neural_network_model = None
-
-try:
-    svm_model = joblib.load(os.path.join(MODELS_FOLDER, 'breast_cancer_svm_model1.pkl'))
-    print("SVM model loaded successfully")
-except Exception as e:
-    print(f"Error loading SVM model: {e}")
-    svm_model = None
+# Initialize model variables
+neural_network_model = None
+svm_model = None
 
 # Define class labels
 CLASS_LABELS = ["Benign", "Malignant", "Normal"]
+
+def load_neural_network():
+    global neural_network_model
+    if neural_network_model is None:
+        try:
+            neural_network_model = tf.keras.models.load_model(os.path.join(MODELS_FOLDER, 'densenet121_model.h5'))
+            print("Neural network model loaded successfully")
+        except Exception as e:
+            print(f"Error loading neural network: {e}")
+    return neural_network_model
+
+def load_svm():
+    global svm_model
+    if svm_model is None:
+        try:
+            svm_model = joblib.load(os.path.join(MODELS_FOLDER, 'breast_cancer_svm_model1.pkl'))
+            print("SVM model loaded successfully")
+        except Exception as e:
+            print(f"Error loading SVM: {e}")
+    return svm_model
 
 def preprocess_for_densenet(image_path):
     """Preprocess image for DenseNet121 model."""
@@ -97,38 +107,40 @@ def predict():
         file.save(image_path)
         print(f"File saved at: {image_path}")
 
-        # Predict
+        # Load and predict with the requested model
         if model_id in ['DenseNet121', 'neural-network']:
-            if neural_network_model is None:
+            model = load_neural_network()
+            if model is None:
                 return jsonify({'success': False, 'error': 'Neural network model not available'})
                 
             preprocessed_data = preprocess_for_densenet(image_path)
-            print(f"Preprocessed Data Shape: {preprocessed_data.shape}")  # Debug log
+            print(f"Preprocessed Data Shape: {preprocessed_data.shape}")
 
-            prediction = neural_network_model.predict(preprocessed_data)[0]
-            print(f"Raw Prediction: {prediction}")  # Debug log
+            prediction = model.predict(preprocessed_data)[0]
+            print(f"Raw Prediction: {prediction}")
 
             predicted_class = np.argmax(prediction)
             confidence = float(np.max(prediction)) * 100
             probabilities = {CLASS_LABELS[i]: float(prob) * 100 for i, prob in enumerate(prediction)}
 
         elif model_id in ['svm', 'SVM']:
-            if svm_model is None:
+            model = load_svm()
+            if model is None:
                 return jsonify({'success': False, 'error': 'SVM model not available'})
                 
             preprocessed_data = preprocess_for_svm(image_path)
-            print(f"SVM Features Shape: {preprocessed_data.shape}")  # Debug log
+            print(f"SVM Features Shape: {preprocessed_data.shape}")
 
-            prediction = svm_model.predict(preprocessed_data)[0]
-            print(f"SVM Prediction: {prediction}")  # Debug log
+            prediction = model.predict(preprocessed_data)[0]
+            print(f"SVM Prediction: {prediction}")
 
-            if hasattr(svm_model, "predict_proba"):
-                proba = svm_model.predict_proba(preprocessed_data)[0]
+            if hasattr(model, "predict_proba"):
+                proba = model.predict_proba(preprocessed_data)[0]
                 probabilities = {CLASS_LABELS[i]: float(proba[i]) * 100 for i in range(len(proba))}
-                predicted_class = np.argmax(proba)  # Get the class with the highest probability
+                predicted_class = np.argmax(proba)
             else:
                 probabilities = {CLASS_LABELS[prediction]: 100}
-                predicted_class = prediction  # Directly use prediction as class label
+                predicted_class = prediction
 
             confidence = float(max(probabilities.values())) if probabilities else None
 
@@ -148,7 +160,7 @@ def predict():
         return jsonify(response)
 
     except Exception as e:
-        print("Error:", str(e))  # Log error
+        print("Error:", str(e))
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
