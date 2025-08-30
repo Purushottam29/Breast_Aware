@@ -17,9 +17,20 @@ MODELS_FOLDER = './models'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(MODELS_FOLDER, exist_ok=True)
 
-# Load models
-neural_network_model = tf.keras.models.load_model(os.path.join(MODELS_FOLDER, 'densenet121_model.h5'))
-svm_model = joblib.load(os.path.join(MODELS_FOLDER, 'breast_cancer_svm_model1.pkl'))  # Ensure correct path
+# Load models with error handling
+try:
+    neural_network_model = tf.keras.models.load_model(os.path.join(MODELS_FOLDER, 'densenet121_model.h5'))
+    print("Neural network model loaded successfully")
+except Exception as e:
+    print(f"Error loading neural network model: {e}")
+    neural_network_model = None
+
+try:
+    svm_model = joblib.load(os.path.join(MODELS_FOLDER, 'breast_cancer_svm_model1.pkl'))
+    print("SVM model loaded successfully")
+except Exception as e:
+    print(f"Error loading SVM model: {e}")
+    svm_model = None
 
 # Define class labels
 CLASS_LABELS = ["Benign", "Malignant", "Normal"]
@@ -48,6 +59,15 @@ def preprocess_for_svm(image_path):
     )
     return features.reshape(1, -1)  # Reshape for prediction
 
+@app.route('/', methods=['GET'])
+def home():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'API is running',
+        'neural_network_loaded': neural_network_model is not None,
+        'svm_loaded': svm_model is not None
+    })
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -70,6 +90,9 @@ def predict():
 
         # Predict
         if model_id in ['DenseNet121', 'neural-network']:
+            if neural_network_model is None:
+                return jsonify({'success': False, 'error': 'Neural network model not available'})
+                
             preprocessed_data = preprocess_for_densenet(image_path)
             print(f"Preprocessed Data Shape: {preprocessed_data.shape}")  # Debug log
 
@@ -81,6 +104,9 @@ def predict():
             probabilities = {CLASS_LABELS[i]: float(prob) * 100 for i, prob in enumerate(prediction)}
 
         elif model_id in ['svm', 'SVM']:
+            if svm_model is None:
+                return jsonify({'success': False, 'error': 'SVM model not available'})
+                
             preprocessed_data = preprocess_for_svm(image_path)
             print(f"SVM Features Shape: {preprocessed_data.shape}")  # Debug log
 
@@ -117,4 +143,5 @@ def predict():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

@@ -19,7 +19,6 @@ uploads/
 
 # Compiled/temporary files
 *.npy
-*.pkl
 *.csv
 
 # Build and logs
