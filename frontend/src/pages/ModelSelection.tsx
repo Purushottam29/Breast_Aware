@@ -55,7 +55,7 @@ const ModelSelection = () => {
 
     try {
         toast.info("Sending image to model for prediction...");
-        const response = await fetch("http://127.0.0.1:5000/predict", {
+        const response = await fetch("https://breast-aware-backend-428663962933.asia-south1.run.app/predict", {
             method: "POST",
             body: formData,
         });

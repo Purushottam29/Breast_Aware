@@ -12,10 +12,8 @@ interface ModelPredictionParams {
   onError?: (error: string) => void;
 }
 
-// The base URL for your Python backend API
-// When testing locally, this might be something like "http://localhost:5000"
-// You'll need to update this when deploying
-const API_BASE_URL = "http://localhost:5000";
+
+const API_BASE_URL = "https://breast-aware-backend-428663962933.asia-south1.run.app/predict";
 
 export const predictWithModel = async ({
   modelId,
