@@ -1,8 +1,14 @@
 # 🩺 Breast_Aware 
 
 **Breast_Aware** is an intelligent web application that helps users predict and analyze breast cancer risk from ultrasound images using deep learning and machine learning models.
-
 This tool aims to assist in early detection and spread awareness by providing accessible, fast, and accurate predictions.
+
+---
+
+## 🚀 Live Demo  
+
+- **Frontend (Vercel):** [Breast_Aware](https://breast-aware.vercel.app/)  
+- **Backend (Google Cloud Run):** [Prediction API](https://breast-aware-backend-428663962933.asia-south1.run.app/predict)  
 
 ---
 
@@ -18,12 +24,13 @@ This tool aims to assist in early detection and spread awareness by providing ac
 
 ---
 
-## Tech Stack
+## Tech Stack  
 
-- **Frontend**: HTML, CSS, JavaScript (initially generated using **Lovable AI**, then customized and integrated by me)
-- **Backend**: Python (Streamlit)
-- **Models**: DenseNet121, ML models, SVM
-- **Deployment**: In progress 
+- **Frontend:** React, Vite, TailwindCSS  
+- **Backend:** Flask (Python 3.12.5)  
+- **Deployment:**  
+  - Frontend → Vercel  
+  - Backend → Google Cloud Run  
 
 ---
 
@@ -43,19 +50,19 @@ python -m venv venv
 source venv/bin/activate  # On Linux/Mac
 venv\Scripts\activate     # On Windows
 ```
-
-3 **Install dependencies**
-
-```bash
-pip install -r requirements.txt
-npm install
-```
-
-4 **Run the app**
+3 **Setup Backend**
 
 ```bash
 python app.py //to run the backend
 npm run dev //to start the frontend
+```
+
+4 **Setup Frontend**
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
@@ -73,17 +80,8 @@ npm run dev //to start the frontend
 ## Future Improvements
 
 - Improve model accuracy with larger datasets.
-- Deploy to a production-grade backend.
 - Add user authentication and saved reports.
 - Add a PDF report download feature for predictions.
-
----
-
-## Acknowledgements
-
-* **Lovable AI** — used to generate the initial frontend layout.
-* **OpenAI** — for guidance and support through ChatGPT.
-* My college professors and peers for feedback and suggestions.
 
 ---
 
